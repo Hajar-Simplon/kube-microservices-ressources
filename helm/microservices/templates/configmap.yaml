@@ -3,7 +3,7 @@ kind: ConfigMap
 
 metadata:
   name: api-config
-  namespace: microservices
+  namespace: {{ .Values.namespace }}
 
 data:
   BOOKS_API_HOST: books-service
