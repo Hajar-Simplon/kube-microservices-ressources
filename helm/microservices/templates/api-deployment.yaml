@@ -3,10 +3,10 @@ kind: Deployment
 
 metadata:
   name: {{ .Release.Name }}-api
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Release.Namespace }}
 
 spec:
-  replicas: {{ .Values.api.replicas }}
+  replicas: {{ .Values.api.replicaCount }}
 
   strategy:
     type: RollingUpdate
@@ -60,27 +60,20 @@ spec:
           ports:
             - containerPort: {{ .Values.api.containerPort }}
 
+          {{- with .Values.api.startupProbe }}
           startupProbe:
-            httpGet:
-              path: {{ .Values.api.startupProbe.path }}
-              port: {{ .Values.api.containerPort }}
-            initialDelaySeconds: {{ .Values.api.startupProbe.initialDelaySeconds }}
-            periodSeconds: {{ .Values.api.startupProbe.periodSeconds }}
-            failureThreshold: {{ .Values.api.startupProbe.failureThreshold }}
+{{ toYaml . | nindent 12 }}
+          {{- end }}
 
+          {{- with .Values.api.readinessProbe }}
           readinessProbe:
-            httpGet:
-              path: {{ .Values.api.readinessProbe.path }}
-              port: {{ .Values.api.containerPort }}
-            initialDelaySeconds: {{ .Values.api.readinessProbe.initialDelaySeconds }}
-            periodSeconds: {{ .Values.api.readinessProbe.periodSeconds }}
+{{ toYaml . | nindent 12 }}
+          {{- end }}
 
+          {{- with .Values.api.livenessProbe }}
           livenessProbe:
-            httpGet:
-              path: {{ .Values.api.livenessProbe.path }}
-              port: {{ .Values.api.containerPort }}
-            initialDelaySeconds: {{ .Values.api.livenessProbe.initialDelaySeconds }}
-            periodSeconds: {{ .Values.api.livenessProbe.periodSeconds }}
+{{ toYaml . | nindent 12 }}
+          {{- end }}
 
           resources:
 {{- toYaml .Values.api.resources | nindent 12 }}
