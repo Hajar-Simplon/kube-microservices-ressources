@@ -11,6 +11,8 @@ global:
 -commonAppConfig: &commonAppConfig
   replicaCount: 3
 
+  containerPort: 8080
+  
   # This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
   livenessProbe:
     httpGet:
@@ -22,8 +24,8 @@ global:
     httpGet:
       path: /health
       port: 8080
-      initialDelaySeconds: 15
-      periodSeconds: 10
+    initialDelaySeconds: 15
+    periodSeconds: 10
   # This is to setup the startup probe more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
   startupProbe:
     httpGet:

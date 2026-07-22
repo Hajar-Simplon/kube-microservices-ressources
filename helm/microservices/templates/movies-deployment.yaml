@@ -27,7 +27,7 @@ spec:
                     operator: In
                     values:
                       - movies
-                topologyKey: {{ .Values.global.topologyKey }}
+              topologyKey: {{ .Values.global.topologyKey }}
       
       containers:
         - name: movies
