@@ -99,6 +99,18 @@ reset: clean delete-cluster
 # Complete Local Deployment
 # ==========================================
 
-deploy: build load upgrade
+deploy: cluster build load install labels
 
-setup: cluster labels
+# ==========================================
+# Chaos Experiments
+# ==========================================
+
+watch-pods:
+	watch -n 1 kubectl get pods -n $(NAMESPACE) -o wide
+
+measure:
+
+node-down:
+
+
+zone-down:
