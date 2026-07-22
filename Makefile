@@ -53,7 +53,7 @@ template:
 	helm template $(HELM_RELEASE) $(HELM_CHART)
 
 install:
-	helm install $(HELM_RELEASE) $(HELM_CHART)
+	helm install $(HELM_RELEASE) $(HELM_CHART) -n microservices --create-namespace
 
 upgrade:
 	helm upgrade $(HELM_RELEASE) $(HELM_CHART)
@@ -86,6 +86,9 @@ restart:
 describe:
 	kubectl describe deployment microservices-api -n $(NAMESPACE)
 
+port-forward-api:
+	kubectl port-forward -n $(NAMESPACE) svc/api-service 8080:80
+
 # ==========================================
 # Cleanup
 # ==========================================
@@ -100,6 +103,8 @@ reset: clean delete-cluster
 # ==========================================
 
 deploy: cluster build load install labels
+
+deploy-local: deploy port-forward-api
 
 # ==========================================
 # Chaos Experiments

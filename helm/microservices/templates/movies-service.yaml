@@ -3,7 +3,7 @@ kind: Service
 
 metadata:
   name: movies-service
-  namespace: microservices
+  namespace: {{ .Values.namespace }}
 
 spec:
   selector:

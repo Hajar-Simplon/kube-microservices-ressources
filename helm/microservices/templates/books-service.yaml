@@ -3,7 +3,7 @@ kind: Service
 
 metadata:
   name: books-service
-  namespace: microservices
+  namespace: {{ .Values.namespace }}
 
 spec:
   selector:

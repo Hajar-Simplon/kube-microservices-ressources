@@ -7,41 +7,31 @@ global:
   # Topology key for pod anti-affinity. This is used to ensure that pods are scheduled on different nodes. More information can be found here: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#affinity-and-anti-affinity
   topologyKey: kubernetes.io/hostname
 
-
--commonAppConfig: &commonAppConfig
+books:
   replicaCount: 3
-
-  containerPort: 8080
-  
-  # This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
-  livenessProbe:
-    httpGet:
-      path: /health
-      port: 8080
-    failureThreshold: 1
-    periodSeconds: 10
-
-  readinessProbe:
-    httpGet:
-      path: /health
-      port: 8080
-    initialDelaySeconds: 15
-    periodSeconds: 10
-
-  # This is to setup the startup probe more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+  command: ["/app/books"]
   startupProbe:
     httpGet:
       path: /health
       port: 8080
     failureThreshold: 30
     periodSeconds: 10
-
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 8080
+    initialDelaySeconds: 15
+    periodSeconds: 10
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 8080
+    failureThreshold: 1
+    periodSeconds: 10
   service:
     type: ClusterIP
     port: 80
     targetPort: 8080
-
-
   resources:
     requests:
       memory: "64Mi"
@@ -50,15 +40,72 @@ global:
       memory: "128Mi"
       cpu: "200m"
 
-books:
-  <<: *commonAppConfig
-  command: ["/app/books"]
-
 movies:
-  <<: *commonAppConfig
+  replicaCount: 3
   command: ["/app/movies"]
+  startupProbe:
+    httpGet:
+      path: /health
+      port: 8080
+    failureThreshold: 30
+    periodSeconds: 10
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 8080
+    initialDelaySeconds: 15
+    periodSeconds: 10
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 8080
+    failureThreshold: 1
+    periodSeconds: 10
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 8080
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "100m"
+    limits:
+      memory: "128Mi"
+      cpu: "200m"
 
 api:
-  <<: *commonAppConfig
-  command: ["/app/api"]
+  replicaCount: 3
+  containerPort: 8080
+  startupProbe:
+    httpGet:
+      path: /health
+      port: 8080
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    failureThreshold: 30
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 8080
+    initialDelaySeconds: 15
+    periodSeconds: 10
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 8080
+    initialDelaySeconds: 15
+    periodSeconds: 10
+  service:
+    type: NodePort
+    port: 80
+    targetPort: 8080
+    nodePort: 30080
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "100m"
+    limits:
+      memory: "128Mi"
+      cpu: "200m"
 
+namespace: microservices
