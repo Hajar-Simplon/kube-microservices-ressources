@@ -2,11 +2,11 @@ apiVersion: apps/v1
 kind: Deployment
 
 metadata:
-  name: movies
-  namespace: microservices
+  name: {{ .Release.Name }}-movies
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
 
 spec:
-  replicas: 2
+  replicas: {{ .Values.movies.replicaCount }}
 
   selector:
     matchLabels:
@@ -20,35 +20,40 @@ spec:
     spec:
       affinity:
         podAntiAffinity:
-  
-          preferredDuringSchedulingIgnoredDuringExecution:
-  
-            - weight: 100
-  
-              podAffinityTerm:
-  
-                labelSelector:
-  
-                  matchExpressions:
-  
-                    - key: app
-  
-                      operator: In
-  
-                      values:
-                        - movies
-  
-                topologyKey: kubernetes.io/hostname
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - movies
+                topologyKey: {{ .Values.global.topologyKey }}
+      
       containers:
         - name: movies
-          image: kube-microservices:latest
-          imagePullPolicy: IfNotPresent
+          image: {{ .Values.global.image.repository }}:{{ .Values.global.image.tag }}
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
 
           command:
-            - /app/movies
+            {{- toYaml .Values.movies.command | nindent 12 }}
 
           ports:
-            - containerPort: 8080
+            - containerPort: {{ .Values.movies.service.targetPort }}
+
+          {{- with .Values.movies.startupProbe }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+
+          {{- with .Values.movies.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+
+          {{- with .Values.movies.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
 
           resources:
             {{- toYaml .Values.movies.resources | nindent 12 }}

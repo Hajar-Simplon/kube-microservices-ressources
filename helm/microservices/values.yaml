@@ -8,7 +8,7 @@ global:
   topologyKey: kubernetes.io/hostname
 
 
--commonProbes: &commonAppConfig
+-commonAppConfig: &commonAppConfig
   replicaCount: 3
 
   # This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
@@ -54,45 +54,8 @@ movies:
   <<: *commonAppConfig
   command: ["/app/movies"]
 
-namespace: microservices
-
 api:
-  replicas: 2
+  <<: *commonAppConfig
+  command: ["/app/api"]
 
-  image:
-    repository: kube-microservices
-    tag: latest
-    pullPolicy: IfNotPresent
-
-  containerPort: 8080
-
-  service:
-    type: NodePort
-    port: 80
-    targetPort: 8080
-
-  resources:
-    requests:
-      cpu: "100m"
-      memory: "128Mi"
-
-    limits:
-      cpu: "250m"
-      memory: "256Mi"
-
-  startupProbe:
-    path: /health
-    initialDelaySeconds: 5
-    periodSeconds: 5
-    failureThreshold: 30
-
-  readinessProbe:
-    path: /health
-    initialDelaySeconds: 5
-    periodSeconds: 10
-
-  livenessProbe:
-    path: /health
-    initialDelaySeconds: 15
-    periodSeconds: 20
-
+namespace: microservices
