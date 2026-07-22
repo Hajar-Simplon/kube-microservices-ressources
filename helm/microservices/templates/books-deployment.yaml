@@ -2,11 +2,11 @@ apiVersion: apps/v1
 kind: Deployment
 
 metadata:
-  name: books
-  namespace: microservices
+  name: {{ .Release.Name }}-books
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
 
 spec:
-  replicas: 2
+  replicas: {{ .Values.books.replicaCount }}
 
   selector:
     matchLabels:
@@ -38,17 +38,32 @@ spec:
                       values:
                         - books
   
-                topologyKey: kubernetes.io/hostname
+                topologyKey: {{ .Values.global.topologyKey }}
       containers:
         - name: books
-          image: kube-microservices:latest
-          imagePullPolicy: IfNotPresent
+          image: {{ .Values.global.image.repository }}:{{ .Values.global.image.tag }}
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
 
           command:
-            - /app/books
+            {{- toYaml .Values.books.command | nindent 12 }}
 
           ports:
-            - containerPort: 8080
+            - containerPort: {{ .Values.books.service.targetPort }}
 
+          {{- with .Values.books.startupProbe }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+
+          {{- with .Values.books.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+
+          {{- with .Values.books.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          
           resources:
             {{- toYaml .Values.books.resources | nindent 12 }}
