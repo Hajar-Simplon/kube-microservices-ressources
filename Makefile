@@ -1,70 +1,104 @@
 # ==========================================
-# Kubernetes Microservices - KIND
+# High Availability Microservices - Makefile
 # ==========================================
 
-CLUSTER_NAME = kind
-NAMESPACE = microservices
-MANIFESTS = k8s
+# Variables
+CLUSTER_NAME := microservices-chaos
+HELM_RELEASE := microservices
+HELM_CHART := helm/microservices
+NAMESPACE := microservices
+IMAGE := kube-microservices:latest
 
-.PHONY: cluster delete-cluster deploy destroy status pods deployments services endpoints api-logs books-logs movies-logs shell port-forward
+# ==========================================
+# Kind Cluster
+# ==========================================
 
-## Create KIND cluster
 cluster:
-	kind create cluster --config kind-config.yaml
+	kind create cluster --name $(CLUSTER_NAME) --config kind-config.yaml
 
-## Delete KIND cluster
 delete-cluster:
-	kind delete cluster
+	kind delete cluster --name $(CLUSTER_NAME)
 
-## Deploy all manifests
-deploy:
-	kubectl apply -f $(MANIFESTS)/
+nodes:
+	kubectl get nodes -L topology.kubernetes.io/zone
 
-## Delete all manifests
-destroy:
-	kubectl delete -f $(MANIFESTS)/
+# ==========================================
+# Labels
+# ==========================================
 
-## Show cluster status
-status:
-	kubectl cluster-info
-	kubectl get nodes
+labels:
+	chmod +x scripts/labels.sh
+	./scripts/labels.sh
 
-## Show Pods
+# ==========================================
+# Docker
+# ==========================================
+
+build:
+	docker build -t $(IMAGE) .
+
+load:
+	kind load docker-image $(IMAGE) --name $(CLUSTER_NAME)
+
+rebuild: build load
+
+# ==========================================
+# Helm
+# ==========================================
+
+lint:
+	helm lint $(HELM_CHART)
+
+template:
+	helm template $(HELM_RELEASE) $(HELM_CHART)
+
+install:
+	helm install $(HELM_RELEASE) $(HELM_CHART)
+
+upgrade:
+	helm upgrade $(HELM_RELEASE) $(HELM_CHART)
+
+uninstall:
+	helm uninstall $(HELM_RELEASE)
+
+# ==========================================
+# Kubernetes
+# ==========================================
+
 pods:
-	kubectl get pods -o wide -n $(NAMESPACE)
+	kubectl get pods -n $(NAMESPACE) -o wide
 
-## Show Deployments
-deployments:
-	kubectl get deployments -n $(NAMESPACE)
-
-## Show Services
 services:
 	kubectl get svc -n $(NAMESPACE)
 
-## Show EndpointSlices
-endpoints:
-	kubectl get endpointslices -n $(NAMESPACE)
+deployments:
+	kubectl get deployments -n $(NAMESPACE)
 
-## View API logs
-api-logs:
-	kubectl logs deployment/api -n $(NAMESPACE)
+all:
+	kubectl get all -n $(NAMESPACE)
 
-## View Books logs
-books-logs:
-	kubectl logs deployment/books -n $(NAMESPACE)
+logs:
+	kubectl logs -n $(NAMESPACE) deployment/microservices-api
 
-## View Movies logs
-movies-logs:
-	kubectl logs deployment/movies -n $(NAMESPACE)
+restart:
+	kubectl rollout restart deployment microservices-api -n $(NAMESPACE)
 
-## Open a shell inside a Pod
-shell:
-	@echo "1. List the Pods:"
-	@echo "   kubectl get pods -n $(NAMESPACE)"
-	@echo ""
-	@echo "2. Open a shell:"
-	@echo "   kubectl exec -it <pod-name> -n $(NAMESPACE) -- /bin/sh"
+describe:
+	kubectl describe deployment microservices-api -n $(NAMESPACE)
 
-## Access the API locally
-port-forward:
-	kubectl port-forward service/api-service 8080:80 -n $(NAMESPACE)
+# ==========================================
+# Cleanup
+# ==========================================
+
+clean:
+	helm uninstall $(HELM_RELEASE) || true
+
+reset: clean delete-cluster
+
+# ==========================================
+# Complete Local Deployment
+# ==========================================
+
+deploy: build load upgrade
+
+setup: cluster labels
