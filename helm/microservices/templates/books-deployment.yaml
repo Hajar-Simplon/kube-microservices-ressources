@@ -20,25 +20,15 @@ spec:
     spec:
       affinity:
         podAntiAffinity:
-  
-          preferredDuringSchedulingIgnoredDuringExecution:
-  
-            - weight: 100
-  
-              podAffinityTerm:
-  
-                labelSelector:
-  
-                  matchExpressions:
-  
-                    - key: app
-  
-                      operator: In
-  
-                      values:
-                        - books
-  
-                topologyKey: {{ .Values.global.topologyKey }}
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                      - books
+                topologyKey: {{ .Values.global.topologyKey }}*
+
       containers:
         - name: books
           image: {{ .Values.global.image.repository }}:{{ .Values.global.image.tag }}
@@ -64,6 +54,6 @@ spec:
           readinessProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          
+
           resources:
             {{- toYaml .Values.books.resources | nindent 12 }}

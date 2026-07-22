@@ -33,13 +33,13 @@ spec:
                     operator: In
                     values:
                       - api
-              topologyKey: kubernetes.io/hostname
+              topologyKey: {{ .Values.global.topologyKey }}
 
       containers:
         - name: api
 
-          image: "{{ .Values.api.image.repository }}:{{ .Values.api.image.tag }}"
-          imagePullPolicy: {{ .Values.api.image.pullPolicy }}
+          image: "{{ .Values.global.image.repository }}:{{ .Values.global.image.tag }}"
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
 
           command:
             - /app/api
