@@ -7,7 +7,8 @@ CLUSTER_NAME := microservices-chaos
 HELM_RELEASE := microservices
 HELM_CHART := helm/microservices
 NAMESPACE := microservices
-IMAGE := kube-microservices:latest
+TAG ?= 1.0.0
+IMAGE := kube-microservices:$(TAG)
 
 # ==========================================
 # Kind Cluster
@@ -20,15 +21,14 @@ delete-cluster:
 	kind delete cluster --name $(CLUSTER_NAME)
 
 nodes:
-	kubectl get nodes -L topology.kubernetes.io/zone
+	kubectl get nodes -L topology.kubernetes.io/region,topology.kubernetes.io/zone
 
 # ==========================================
 # Labels
 # ==========================================
 
 labels:
-	chmod +x scripts/labels.sh
-	./scripts/labels.sh
+	bash scripts/labels.sh
 
 # ==========================================
 # Docker
@@ -53,13 +53,16 @@ template:
 	helm template $(HELM_RELEASE) $(HELM_CHART)
 
 install:
-	helm install $(HELM_RELEASE) $(HELM_CHART)
+	helm upgrade --install $(HELM_RELEASE) $(HELM_CHART) --namespace $(NAMESPACE) --create-namespace --set global.image.tag=$(TAG)
 
 upgrade:
-	helm upgrade $(HELM_RELEASE) $(HELM_CHART)
+	helm upgrade $(HELM_RELEASE) $(HELM_CHART) --namespace $(NAMESPACE) --set global.image.tag=$(TAG)
+	kubectl rollout status deployment/$(HELM_RELEASE)-api -n $(NAMESPACE)
+	kubectl rollout status deployment/$(HELM_RELEASE)-books -n $(NAMESPACE)
+	kubectl rollout status deployment/$(HELM_RELEASE)-movies -n $(NAMESPACE)
 
 uninstall:
-	helm uninstall $(HELM_RELEASE)
+	helm uninstall $(HELM_RELEASE) --namespace $(NAMESPACE)
 
 # ==========================================
 # Kubernetes
@@ -91,7 +94,7 @@ describe:
 # ==========================================
 
 clean:
-	helm uninstall $(HELM_RELEASE) || true
+	helm uninstall $(HELM_RELEASE) --namespace $(NAMESPACE) || true
 
 reset: clean delete-cluster
 
@@ -99,18 +102,23 @@ reset: clean delete-cluster
 # Complete Local Deployment
 # ==========================================
 
-deploy: cluster build load install labels
+deploy: cluster labels build load install
 
 # ==========================================
 # Chaos Experiments
 # ==========================================
 
 watch-pods:
-	watch -n 1 kubectl get pods -n $(NAMESPACE) -o wide
+	kubectl get pods -n $(NAMESPACE) -o wide --watch
 
 measure:
+	bash scripts/load-test.sh
 
 node-down:
-
+	bash scripts/drain-node.sh
 
 zone-down:
+	bash scripts/drain-zone.sh
+
+recover:
+	bash scripts/recover.sh

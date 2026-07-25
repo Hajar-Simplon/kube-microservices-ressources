@@ -3,7 +3,7 @@ kind: Service
 
 metadata:
   name: api-service
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Release.Namespace }}
 
 spec:
   selector:
@@ -12,5 +12,8 @@ spec:
   ports:
     - port: {{ .Values.api.service.port }}
       targetPort: {{ .Values.api.service.targetPort }}
+      {{- with .Values.api.service.nodePort }}
+      nodePort: {{ . }}
+      {{- end }}
 
   type: {{ .Values.api.service.type }}

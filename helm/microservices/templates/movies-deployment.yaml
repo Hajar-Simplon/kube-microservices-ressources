@@ -8,6 +8,12 @@ metadata:
 spec:
   replicas: {{ .Values.movies.replicaCount }}
 
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: {{ .Values.movies.strategy.maxUnavailable }}
+      maxSurge: {{ .Values.movies.strategy.maxSurge }}
+
   selector:
     matchLabels:
       app: movies
@@ -28,6 +34,15 @@ spec:
                     values:
                       - movies
               topologyKey: {{ .Values.global.topologyKey }}
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values: [api, books, movies]
+                topologyKey: kubernetes.io/hostname
       
       containers:
         - name: movies

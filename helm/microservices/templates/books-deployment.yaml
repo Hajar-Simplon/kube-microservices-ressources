@@ -8,6 +8,12 @@ metadata:
 spec:
   replicas: {{ .Values.books.replicaCount }}
 
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: {{ .Values.books.strategy.maxUnavailable }}
+      maxSurge: {{ .Values.books.strategy.maxSurge }}
+
   selector:
     matchLabels:
       app: books
@@ -28,6 +34,15 @@ spec:
                     values:
                       - books
               topologyKey: {{ .Values.global.topologyKey }}
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values: [api, books, movies]
+                topologyKey: kubernetes.io/hostname
 
       containers:
         - name: books

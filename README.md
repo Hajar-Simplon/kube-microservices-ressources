@@ -1,109 +1,95 @@
-# High Availability Microservices with Kubernetes & Helm
+# Highly Available Microservices on Kubernetes
 
-## Overview
+This project deploys an application composed of an API Gateway and two
+microservices (`books` and `movies`) on a Kind cluster with nine worker nodes.
+The workers simulate three availability zones in the `francecentral` region.
 
-This project demonstrates the deployment of a highly available microservices application on Kubernetes using Helm.
+## Architecture
 
-The infrastructure is deployed on a local Kind (Kubernetes in Docker) cluster composed of one control plane and nine worker nodes distributed across three simulated Availability Zones.
-
-The project focuses on:
-
-- Kubernetes High Availability
-- Helm packaging
-- Rolling updates
-- Health probes
-- Pod Anti-Affinity
-- Multi-zone scheduling
-- Chaos Engineering
-- Load testing
-
----
-
-# Architecture
-
-```
-                   +--------------------+
-                   |    API Gateway     |
-                   +---------+----------+
-                             |
-               +-------------+-------------+
-               |                           |
-        +------+-------+           +-------+------+
-        | Books Service|           | Movies Service|
-        +--------------+           +--------------+
-
+```text
+Host: http://localhost:8080/data
+                 |
+       NodePort 30080
+                 |
+          API Gateway x3
+            /          \
+      Books x3        Movies x3
 ```
 
-The API Gateway aggregates responses from the Books and Movies services.
+Each application has three replicas. Strict pod anti-affinity on
+`topology.kubernetes.io/zone` requires one replica in each zone. Preferred
+anti-affinity on `kubernetes.io/hostname` also encourages the scheduler to use
+less occupied nodes.
 
----
+| Zone | Workers |
+| --- | --- |
+| `francecentral-1` | `worker`, `worker2`, `worker3` |
+| `francecentral-2` | `worker4`, `worker5`, `worker6` |
+| `francecentral-3` | `worker7`, `worker8`, `worker9` |
 
-# Technologies
+## Prerequisites
 
-- Go
-- Gin
-- Docker
-- Kubernetes
-- Helm 3
+- Docker Engine or Docker Desktop
 - Kind
-- Bash
-- GNU Make
+- kubectl
+- Helm
+- GNU Make and Bash
+- Go for local tests
 
----
+Verify the tools:
 
-# Project Structure
-
-```
-.
-├── cmd/
-│   └── api/
-│       └── main.go
-│
-├── helm/
-│   └── microservices/
-│       ├── Chart.yaml
-│       ├── values.yaml
-│       └── templates/
-│           ├── namespace.yaml
-│           ├── configmap.yaml
-│           ├── api-deployment.yaml
-│           └── api-service.yaml
-│
-├── k8s/
-│
-├── scripts/
-│   └── labels.sh
-│
-├── Dockerfile
-├── Makefile
-├── kind-config.yaml
-└── README.md
+```bash
+docker version
+kind version
+kubectl version --client
+helm version
+go version
 ```
 
----
+## Deployment
 
-# Cluster Architecture
+The complete command creates the cluster, labels the nodes before scheduling,
+builds the image, loads it into Kind, and installs the Helm chart:
 
-The project uses a Kind cluster composed of:
+```bash
+make deploy
+```
 
-- 1 Control Plane
-- 9 Worker Nodes
+The steps can also be executed separately:
 
-Workers are distributed into three simulated Availability Zones.
+```bash
+make cluster
+make labels
+make build TAG=1.0.0
+make load TAG=1.0.0
+make install TAG=1.0.0
+```
 
-| Zone | Nodes |
-|------|-------|
-| zone-a | worker1 worker2 worker3 |
-| zone-b | worker4 worker5 worker6 |
-| zone-c | worker7 worker8 worker9 |
+Verify the deployment:
 
----
+```bash
+make nodes
+make pods
+make services
+curl http://localhost:8080/data
+```
 
-# High Availability Features
+The response should contain the books and movies data. `make pods` should show
+one replica of each application in each of the three zones.
 
-## Rolling Update
+## High Availability
 
-The API Deployment uses a RollingUpdate strategy.
+### Health probes
+
+Every container exposes `/health` and defines:
+
+- a `startupProbe` to protect the startup phase;
+- a `readinessProbe` to remove an unready pod from Service endpoints;
+- a `livenessProbe` to let Kubernetes restart an unresponsive process.
+
+### Rolling Update
+
+All three Deployments use:
 
 ```yaml
 strategy:
@@ -113,206 +99,161 @@ strategy:
     maxSurge: 1
 ```
 
-This ensures application availability during updates.
+`maxUnavailable: 1` is required with strict zone anti-affinity. Because all
+three zones are already occupied, Kubernetes must first free a zone before it
+can place the new version there. The other two replicas continue serving
+traffic during this step.
 
----
+For the demonstration, open three terminals.
 
-## Pod Anti-Affinity
-
-The API replicas cannot be scheduled on the same worker node.
-
-```yaml
-requiredDuringSchedulingIgnoredDuringExecution
-```
-
-This protects the application against node failures.
-
----
-
-## Health Probes
-
-The API exposes:
-
-```
-GET /health
-```
-
-Three probes are configured:
-
-- Startup Probe
-- Readiness Probe
-- Liveness Probe
-
-These probes ensure unhealthy containers are automatically detected and restarted.
-
----
-
-# Helm
-
-The project is deployed using Helm.
-
-Current templates:
-
-- Namespace
-- ConfigMap
-- API Deployment
-- API Service
-
-Deployment configuration is centralized inside:
-
-```
-values.yaml
-```
-
----
-
-# Build
-
-Build the API image:
+Terminal 1:
 
 ```bash
-make build
+make watch-pods
 ```
 
----
-
-# Load Image into Kind
+Terminal 2:
 
 ```bash
-make load
+make measure
 ```
 
----
-
-# Create Cluster
+Terminal 3, after building and loading a new image:
 
 ```bash
-make cluster
+make build TAG=2.0.0
+make load TAG=2.0.0
+make upgrade TAG=2.0.0
 ```
 
----
+`helm upgrade` changes the image tag, and `kubectl rollout status` waits for all
+three rollouts to succeed. Siege should continue receiving responses while the
+pods are replaced progressively.
 
-# Label Availability Zones
+### PodDisruptionBudget
+
+Each application has a PDB with `minAvailable: 2`. A voluntary drain can
+therefore evict no more than one replica of an application at a time. A PDB
+protects against voluntary evictions, but it cannot prevent an abrupt node
+failure.
+
+## Load and Chaos Tests
+
+The load-test script uses a locally installed Siege binary when available. Its
+fallback starts a current Ubuntu container and installs Siege inside that
+temporary container. The defaults are 20 concurrent clients for one minute.
+
+Optional parameters:
 
 ```bash
-make labels
+CONCURRENT=50 DURATION=2M make measure
 ```
 
----
+From PowerShell:
 
-# Install the Helm Chart
-
-```bash
-make install
+```powershell
+$env:CONCURRENT = "50"
+$env:DURATION = "2M"
+make measure
 ```
 
----
-
-# Upgrade After Changes
+### Scenario 1 — Normal operation
 
 ```bash
-make deploy
+make measure
 ```
 
-or
+Expected result: 100% availability, except for possible laptop resource
+variations.
+
+### Scenario 2 — Loss of one worker
+
+Start `make measure`, then run this command in another terminal:
 
 ```bash
-make upgrade
+make node-down
 ```
 
----
-
-# Useful Commands
-
-Display nodes and zones:
+The default node is `microservices-chaos-worker`. Select a different node with:
 
 ```bash
-make nodes
+NODE=microservices-chaos-worker5 make node-down
 ```
 
-Display pods:
+From PowerShell:
 
-```bash
-make pods
+```powershell
+$env:NODE = "microservices-chaos-worker5"
+make node-down
 ```
 
-Display all resources:
+Expected result: evicted pods are recreated on another worker in the same zone,
+and the error rate remains low.
+
+### Scenario 3 — Loss of an entire zone
+
+Start `make measure`, then run:
 
 ```bash
-make all
+make zone-down
 ```
 
-Display logs:
+The default zone is `francecentral-1`. Select a different zone with:
 
 ```bash
-make logs
+ZONE=francecentral-2 make zone-down
 ```
 
-Restart deployment:
+From PowerShell:
 
-```bash
-make restart
+```powershell
+$env:ZONE = "francecentral-2"
+make zone-down
 ```
 
----
+Expected result: two replicas of every application remain available. The third
+replica remains `Pending` because strict anti-affinity prevents two replicas
+from running in the same zone. This is the chosen tradeoff between reduced
+capacity and strict topology compliance.
 
-# Deployment Verification
-
-Verify node labels:
+Restore all workers after each experiment:
 
 ```bash
-kubectl get nodes -L topology.kubernetes.io/zone
+make recover
 ```
 
-Verify pod placement:
+## Theoretical Failure Analysis
+
+- **Application running on one node:** losing that node causes an outage until
+  Kubernetes detects the failure and reschedules the pod.
+- **One node lost in every zone:** the application remains available when its
+  pods were not running on those nodes. Otherwise, Kubernetes recreates each
+  affected replica on one of the two remaining workers in its zone.
+- **One entire zone lost:** one replica of every application disappears. The
+  other two zones continue serving traffic, but capacity drops by roughly one
+  third. With strict spreading, Kubernetes does not violate the policy to
+  create a third replica in a surviving zone.
+
+The orchestrator provides health-state detection, removal of unready endpoints,
+rescheduling, convergence toward the declared state, and progressive version
+replacement. It cannot eliminate every transient error instantly. Detection
+delays, existing connections, and laptop resource constraints can explain
+occasional failures reported by Siege.
+
+## Useful Commands
 
 ```bash
+helm lint helm/microservices
+helm template microservices helm/microservices --namespace microservices
 kubectl get pods -n microservices -o wide
+kubectl get pdb -n microservices
+kubectl get endpointslices -n microservices
+kubectl rollout history deployment/microservices-api -n microservices
 ```
 
-Expected result:
-
-- API replicas running on different worker nodes.
-
----
-
-# Chaos Engineering
-
-The project is designed to support Chaos Engineering scenarios.
-
-Examples include:
-
-- Worker node failure
-- Availability Zone failure
-- Pod deletion
-- Rolling update validation
-
----
-
-# Load Testing
-
-Load testing will be performed using Siege.
-
-Example:
+Cleanup:
 
 ```bash
-siege -c 20 -t 1M http://localhost:PORT/data
+make clean
+make delete-cluster
 ```
-
-Metrics observed:
-
-- Availability
-- Throughput
-- Response time
-
----
-
-
-# Future Work
-
-- Deploy Books service through Helm
-- Deploy Movies service through Helm
-- Full application deployment
-- Chaos Engineering demonstrations
-- Load testing report
-- Production Ingress/Gateway
