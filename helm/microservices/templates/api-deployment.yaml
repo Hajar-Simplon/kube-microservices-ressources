@@ -11,8 +11,8 @@ spec:
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxUnavailable: 1
-      maxSurge: 1
+      maxUnavailable: {{ .Values.api.strategy.maxUnavailable }}
+      maxSurge: {{ .Values.api.strategy.maxSurge }}
 
   selector:
     matchLabels:
@@ -34,6 +34,15 @@ spec:
                     values:
                       - api
               topologyKey: {{ .Values.global.topologyKey }}
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values: [api, books, movies]
+                topologyKey: kubernetes.io/hostname
 
       containers:
         - name: api
@@ -48,13 +57,13 @@ spec:
             - name: BOOKS_API_HOST
               valueFrom:
                 configMapKeyRef:
-                  name: api-config
+                  name: {{ .Release.Name }}-api-config
                   key: BOOKS_API_HOST
 
             - name: MOVIES_API_HOST
               valueFrom:
                 configMapKeyRef:
-                  name: api-config
+                  name: {{ .Release.Name }}-api-config
                   key: MOVIES_API_HOST
 
           ports:

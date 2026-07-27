@@ -3,7 +3,7 @@ kind: Service
 
 metadata:
   name: movies-service
-  namespace: microservices
+  namespace: {{ .Release.Namespace }}
 
 spec:
   selector:
@@ -11,7 +11,7 @@ spec:
 
   ports:
     - protocol: TCP
-      port: 80
-      targetPort: 8080
+      port: {{ .Values.movies.service.port }}
+      targetPort: {{ .Values.movies.service.targetPort }}
 
-  type: ClusterIP
+  type: {{ .Values.movies.service.type }}

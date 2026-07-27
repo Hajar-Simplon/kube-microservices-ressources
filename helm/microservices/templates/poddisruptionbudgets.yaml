@@ -1,0 +1,32 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ .Release.Name }}-api
+  namespace: {{ .Release.Namespace }}
+spec:
+  minAvailable: {{ .Values.api.podDisruptionBudget.minAvailable }}
+  selector:
+    matchLabels:
+      app: api
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ .Release.Name }}-books
+  namespace: {{ .Release.Namespace }}
+spec:
+  minAvailable: {{ .Values.books.podDisruptionBudget.minAvailable }}
+  selector:
+    matchLabels:
+      app: books
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ .Release.Name }}-movies
+  namespace: {{ .Release.Namespace }}
+spec:
+  minAvailable: {{ .Values.movies.podDisruptionBudget.minAvailable }}
+  selector:
+    matchLabels:
+      app: movies
