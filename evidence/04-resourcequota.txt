@@ -1,0 +1,9 @@
+Name:            microservices-compute-quota
+Namespace:       microservices
+Resource         Used    Hard
+--------         ----    ----
+limits.cpu       1800m   2400m
+limits.memory    1152Mi  1536Mi
+pods             9       10
+requests.cpu     900m    1200m
+requests.memory  576Mi   768Mi

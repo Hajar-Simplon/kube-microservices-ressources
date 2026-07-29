@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+CLUSTER_NAME="${CLUSTER_NAME:-kube-microservices-ressources}"
+
 echo "Waiting for the Kubernetes API server..."
 for attempt in {1..60}; do
   if kubectl get --raw=/readyz >/dev/null 2>&1; then
@@ -37,18 +39,18 @@ label_node() {
 echo "Labeling worker nodes..."
 
 # Zone 1
-label_node microservices-chaos-worker francecentral-1
-label_node microservices-chaos-worker2 francecentral-1
-label_node microservices-chaos-worker3 francecentral-1
+label_node "${CLUSTER_NAME}-worker" francecentral-1
+label_node "${CLUSTER_NAME}-worker2" francecentral-1
+label_node "${CLUSTER_NAME}-worker3" francecentral-1
 
 # Zone 2
-label_node microservices-chaos-worker4 francecentral-2
-label_node microservices-chaos-worker5 francecentral-2
-label_node microservices-chaos-worker6 francecentral-2
+label_node "${CLUSTER_NAME}-worker4" francecentral-2
+label_node "${CLUSTER_NAME}-worker5" francecentral-2
+label_node "${CLUSTER_NAME}-worker6" francecentral-2
 
 # Zone 3
-label_node microservices-chaos-worker7 francecentral-3
-label_node microservices-chaos-worker8 francecentral-3
-label_node microservices-chaos-worker9 francecentral-3
+label_node "${CLUSTER_NAME}-worker7" francecentral-3
+label_node "${CLUSTER_NAME}-worker8" francecentral-3
+label_node "${CLUSTER_NAME}-worker9" francecentral-3
 
 echo "All worker nodes have been labeled."

@@ -1,0 +1,25 @@
+LAST SEEN   TYPE      REASON              OBJECT                                      MESSAGE
+59m         Normal    Scheduled           pod/limitrange-test                         Successfully assigned microservices/limitrange-test to kube-microservices-ressources-worker
+59m         Normal    Pulled              pod/limitrange-test                         Container image "busybox:1.36" already present on machine
+59m         Normal    Created             pod/limitrange-test                         Created container: limitrange-test
+59m         Normal    Started             pod/limitrange-test                         Started container limitrange-test
+59m         Normal    Killing             pod/limitrange-test                         Stopping container limitrange-test
+58m         Normal    Scheduled           pod/microservices-books-5b58b5bd84-vjswv    Successfully assigned microservices/microservices-books-5b58b5bd84-vjswv to kube-microservices-ressources-worker7
+58m         Warning   FailedCreate        replicaset/microservices-books-5b58b5bd84   Error creating: pods "microservices-books-5b58b5bd84-4vw86" is forbidden: exceeded quota: microservices-compute-quota, requested: pods=1, used: pods=10, limited: pods=10
+58m         Normal    ScalingReplicaSet   deployment/microservices-books              Scaled up replica set microservices-books-5b58b5bd84 from 3 to 5
+58m         Warning   FailedCreate        replicaset/microservices-books-5b58b5bd84   Error creating: pods "microservices-books-5b58b5bd84-zs8zv" is forbidden: exceeded quota: microservices-compute-quota, requested: pods=1, used: pods=10, limited: pods=10
+58m         Warning   FailedCreate        replicaset/microservices-books-5b58b5bd84   Error creating: pods "microservices-books-5b58b5bd84-jxv7q" is forbidden: exceeded quota: microservices-compute-quota, requested: pods=1, used: pods=10, limited: pods=10
+58m         Warning   FailedCreate        replicaset/microservices-books-5b58b5bd84   Error creating: pods "microservices-books-5b58b5bd84-ts7cp" is forbidden: exceeded quota: microservices-compute-quota, requested: pods=1, used: pods=10, limited: pods=10
+58m         Normal    SuccessfulCreate    replicaset/microservices-books-5b58b5bd84   Created pod: microservices-books-5b58b5bd84-vjswv
+58m         Warning   FailedCreate        replicaset/microservices-books-5b58b5bd84   Error creating: pods "microservices-books-5b58b5bd84-f9vbf" is forbidden: exceeded quota: microservices-compute-quota, requested: pods=1, used: pods=10, limited: pods=10
+58m         Warning   FailedCreate        replicaset/microservices-books-5b58b5bd84   Error creating: pods "microservices-books-5b58b5bd84-dvf6r" is forbidden: exceeded quota: microservices-compute-quota, requested: pods=1, used: pods=10, limited: pods=10
+58m         Normal    Pulled              pod/microservices-books-5b58b5bd84-vjswv    Container image "kube-microservices:1.0.0" already present on machine
+58m         Warning   FailedCreate        replicaset/microservices-books-5b58b5bd84   Error creating: pods "microservices-books-5b58b5bd84-zw4zr" is forbidden: exceeded quota: microservices-compute-quota, requested: pods=1, used: pods=10, limited: pods=10
+58m         Warning   FailedCreate        replicaset/microservices-books-5b58b5bd84   Error creating: pods "microservices-books-5b58b5bd84-lkz64" is forbidden: exceeded quota: microservices-compute-quota, requested: pods=1, used: pods=10, limited: pods=10
+58m         Warning   FailedCreate        replicaset/microservices-books-5b58b5bd84   Error creating: pods "microservices-books-5b58b5bd84-gtqs7" is forbidden: exceeded quota: microservices-compute-quota, requested: pods=1, used: pods=10, limited: pods=10
+58m         Normal    Created             pod/microservices-books-5b58b5bd84-vjswv    Created container: books
+58m         Normal    Started             pod/microservices-books-5b58b5bd84-vjswv    Started container books
+58m         Warning   FailedCreate        replicaset/microservices-books-5b58b5bd84   (combined from similar events): Error creating: pods "microservices-books-5b58b5bd84-wfflz" is forbidden: exceeded quota: microservices-compute-quota, requested: pods=1, used: pods=10, limited: pods=10
+58m         Normal    Killing             pod/microservices-books-5b58b5bd84-vjswv    Stopping container books
+58m         Normal    SuccessfulDelete    replicaset/microservices-books-5b58b5bd84   Deleted pod: microservices-books-5b58b5bd84-vjswv
+58m         Normal    ScalingReplicaSet   deployment/microservices-books              Scaled down replica set microservices-books-5b58b5bd84 from 5 to 3

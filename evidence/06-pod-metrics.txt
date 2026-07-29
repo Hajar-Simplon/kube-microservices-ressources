@@ -1,0 +1,10 @@
+NAME                                    CPU(cores)   MEMORY(bytes)   
+microservices-api-6486fff7fc-bfj7l      1m           7Mi             
+microservices-api-6486fff7fc-hq5j2      1m           8Mi             
+microservices-api-6486fff7fc-plr2v      1m           8Mi             
+microservices-books-5b58b5bd84-6jngq    1m           12Mi            
+microservices-books-5b58b5bd84-cs6pg    1m           6Mi             
+microservices-books-5b58b5bd84-h6x9b    1m           11Mi            
+microservices-movies-78f9cbc5fb-bxlk4   1m           3Mi             
+microservices-movies-78f9cbc5fb-p8z25   1m           3Mi             
+microservices-movies-78f9cbc5fb-ss76c   1m           3Mi             

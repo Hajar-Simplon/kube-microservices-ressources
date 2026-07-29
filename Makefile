@@ -3,12 +3,13 @@
 # ==========================================
 
 # Variables
-CLUSTER_NAME := microservices-chaos
+CLUSTER_NAME := kube-microservices-ressources
 HELM_RELEASE := microservices
 HELM_CHART := helm/microservices
 NAMESPACE := microservices
 TAG ?= 1.0.0
 IMAGE := kube-microservices:$(TAG)
+METRICS_SERVER_VERSION ?= v0.9.0
 
 # ==========================================
 # Kind Cluster
@@ -23,12 +24,15 @@ delete-cluster:
 nodes:
 	kubectl get nodes -L topology.kubernetes.io/region,topology.kubernetes.io/zone
 
+metrics-server:
+	METRICS_SERVER_VERSION=$(METRICS_SERVER_VERSION) bash scripts/install-metrics-server.sh
+
 # ==========================================
 # Labels
 # ==========================================
 
 labels:
-	bash scripts/labels.sh
+	CLUSTER_NAME=$(CLUSTER_NAME) bash scripts/labels.sh
 
 # ==========================================
 # Docker
@@ -77,6 +81,21 @@ services:
 deployments:
 	kubectl get deployments -n $(NAMESPACE)
 
+top:
+	kubectl top pods -n $(NAMESPACE)
+
+quota:
+	kubectl describe quota $(HELM_RELEASE)-compute-quota -n $(NAMESPACE)
+
+limits:
+	kubectl describe limitrange $(HELM_RELEASE)-container-limits -n $(NAMESPACE)
+
+verify-resources:
+	NAMESPACE=$(NAMESPACE) HELM_RELEASE=$(HELM_RELEASE) bash scripts/verify-resources.sh
+
+test-resource-policies:
+	NAMESPACE=$(NAMESPACE) HELM_RELEASE=$(HELM_RELEASE) bash scripts/test-resource-policies.sh
+
 all:
 	kubectl get all -n $(NAMESPACE)
 
@@ -102,7 +121,7 @@ reset: clean delete-cluster
 # Complete Local Deployment
 # ==========================================
 
-deploy: cluster labels build load install
+deploy: cluster labels metrics-server build load install
 
 # ==========================================
 # Chaos Experiments
@@ -115,10 +134,10 @@ measure:
 	bash scripts/load-test.sh
 
 node-down:
-	bash scripts/drain-node.sh
+	CLUSTER_NAME=$(CLUSTER_NAME) NAMESPACE=$(NAMESPACE) bash scripts/drain-node.sh
 
 zone-down:
-	bash scripts/drain-zone.sh
+	NAMESPACE=$(NAMESPACE) bash scripts/drain-zone.sh
 
 recover:
 	bash scripts/recover.sh

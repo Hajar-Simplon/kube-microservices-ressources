@@ -7,6 +7,31 @@ global:
   # Required anti-affinity puts one replica of each app in each simulated AZ.
   topologyKey: topology.kubernetes.io/zone
 
+resourcePolicy:
+  limitRange:
+    enabled: true
+    container:
+      defaultRequest:
+        cpu: "50m"
+        memory: "64Mi"
+      default:
+        cpu: "250m"
+        memory: "256Mi"
+      min:
+        cpu: "10m"
+        memory: "16Mi"
+      max:
+        cpu: "500m"
+        memory: "512Mi"
+  resourceQuota:
+    enabled: true
+    hard:
+      requests.cpu: "1200m"
+      requests.memory: "768Mi"
+      limits.cpu: "2400m"
+      limits.memory: "1536Mi"
+      pods: "10"
+
 
 -commonAppConfig: &commonAppConfig
   replicaCount: 3
@@ -74,4 +99,3 @@ api:
     port: 80
     targetPort: 8080
     nodePort: 30080
-

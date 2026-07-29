@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-NODE="${NODE:-microservices-chaos-worker}"
+CLUSTER_NAME="${CLUSTER_NAME:-kube-microservices-ressources}"
+NAMESPACE="${NAMESPACE:-microservices}"
+NODE="${NODE:-${CLUSTER_NAME}-worker}"
 
 echo "Draining node ${NODE}..."
 kubectl drain "${NODE}" \
@@ -9,5 +11,5 @@ kubectl drain "${NODE}" \
   --delete-emptydir-data \
   --timeout=120s
 
-kubectl get pods -n microservices -o wide
+kubectl get pods -n "${NAMESPACE}" -o wide
 echo "Restore it later with: kubectl uncordon ${NODE}"

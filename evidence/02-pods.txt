@@ -1,0 +1,10 @@
+NAME                                    READY   STATUS    RESTARTS   AGE    IP           NODE                                    NOMINATED NODE   READINESS GATES
+microservices-api-6486fff7fc-bfj7l      1/1     Running   0          172m   10.244.8.8   kube-microservices-ressources-worker9   <none>           <none>
+microservices-api-6486fff7fc-hq5j2      1/1     Running   0          172m   10.244.5.4   kube-microservices-ressources-worker3   <none>           <none>
+microservices-api-6486fff7fc-plr2v      1/1     Running   0          172m   10.244.9.4   kube-microservices-ressources-worker7   <none>           <none>
+microservices-books-5b58b5bd84-6jngq    1/1     Running   0          3h1m   10.244.2.2   kube-microservices-ressources-worker4   <none>           <none>
+microservices-books-5b58b5bd84-cs6pg    1/1     Running   0          3h1m   10.244.3.2   kube-microservices-ressources-worker5   <none>           <none>
+microservices-books-5b58b5bd84-h6x9b    1/1     Running   0          3h1m   10.244.7.2   kube-microservices-ressources-worker6   <none>           <none>
+microservices-movies-78f9cbc5fb-bxlk4   1/1     Running   0          3h1m   10.244.4.2   kube-microservices-ressources-worker2   <none>           <none>
+microservices-movies-78f9cbc5fb-p8z25   1/1     Running   0          3h1m   10.244.1.2   kube-microservices-ressources-worker    <none>           <none>
+microservices-movies-78f9cbc5fb-ss76c   1/1     Running   0          3h1m   10.244.6.3   kube-microservices-ressources-worker8   <none>           <none>

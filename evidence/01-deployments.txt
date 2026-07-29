@@ -1,0 +1,4 @@
+NAME                   READY   UP-TO-DATE   AVAILABLE   AGE
+microservices-api      3/3     3            3           3h1m
+microservices-books    3/3     3            3           3h1m
+microservices-movies   3/3     3            3           3h1m

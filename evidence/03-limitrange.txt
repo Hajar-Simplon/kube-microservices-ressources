@@ -1,0 +1,6 @@
+Name:       microservices-container-limits
+Namespace:  microservices
+Type        Resource  Min   Max    Default Request  Default Limit  Max Limit/Request Ratio
+----        --------  ---   ---    ---------------  -------------  -----------------------
+Container   cpu       10m   500m   50m              250m           -
+Container   memory    16Mi  512Mi  64Mi             256Mi          -

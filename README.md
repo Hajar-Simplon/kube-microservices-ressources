@@ -174,16 +174,17 @@ Start `make measure`, then run this command in another terminal:
 make node-down
 ```
 
-The default node is `microservices-chaos-worker`. Select a different node with:
+The default node is `kube-microservices-ressources-worker`. Select a different
+node with:
 
 ```bash
-NODE=microservices-chaos-worker5 make node-down
+NODE=kube-microservices-ressources-worker5 make node-down
 ```
 
 From PowerShell:
 
 ```powershell
-$env:NODE = "microservices-chaos-worker5"
+$env:NODE = "kube-microservices-ressources-worker5"
 make node-down
 ```
 
@@ -250,6 +251,14 @@ kubectl get pdb -n microservices
 kubectl get endpointslices -n microservices
 kubectl rollout history deployment/microservices-api -n microservices
 ```
+
+## Resource Management
+
+All application containers define CPU and memory requests and limits. The Helm
+chart also installs a namespace-wide `LimitRange` and `ResourceQuota`.
+Dimensioning, verification commands, quota-failure evidence and the CPU
+throttling experiment are documented in
+[`docs/resource-management.md`](docs/resource-management.md).
 
 Cleanup:
 

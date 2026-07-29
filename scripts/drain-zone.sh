@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+NAMESPACE="${NAMESPACE:-microservices}"
 ZONE="${ZONE:-francecentral-1}"
 
 mapfile -t NODES < <(
@@ -22,5 +23,5 @@ for node in "${NODES[@]}"; do
     --timeout=120s
 done
 
-kubectl get pods -n microservices -o wide
+kubectl get pods -n "${NAMESPACE}" -o wide
 echo "Run 'make recover' to uncordon all workers."
